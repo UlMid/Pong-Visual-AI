@@ -140,6 +140,13 @@ def main(genomes, config):
         ge.append(g)
         NNs.append(NN(config, g, (140, 250)))
 
+    def remove_object(index):
+        ge[index].fitness -= 5
+        balls.pop(index)
+        sides.pop(index)
+        nets.pop(index)
+        ge.pop(index)
+        NNs.pop(index)
 
     # Reset variables
     run = True
@@ -194,18 +201,22 @@ def main(genomes, config):
 
             # LEFT and RIGHT window collision
             if ball.x <= GAME_WIN or ball.x + ball.SIDE >= WIDTH:
-                ge[index].fitness -= 5
-                balls.pop(index)
-                sides.pop(index)
-                nets.pop(index)
-                ge.pop(index)
-                NNs.pop(index)
+                remove_object(index)
                 continue
 
             # SIDE collision
-            c = sides[index]
-            for couple in c:
-                if (ball.get_rect()).colliderect((couple.get_rect())):
+            couple = sides[index]
+            for side in couple:
+                # Rects
+                ball_rect = ball.get_rect()
+                side_rect = side.get_rect()
+                # COllision
+                if ball_rect.colliderect(side_rect):
+                    # Collision in the upper or lower part of the side
+                    if -5 < ball_rect.bottom - side_rect.top < 5 or -5 < side_rect.bottom - ball_rect.top < 5:
+                        remove_object(index)
+                        continue
+
                     ge[index].fitness += 2
                     ball.change_horizontal_dir()
                     ball.change_vertical_dir()
